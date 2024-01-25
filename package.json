@@ -23,13 +23,15 @@
       {
         "id": "sdoc",
         "extensions": [
-          ".sdoc"
+          ".sdoc",
+          ".sdinc",
+          ".ssec"
         ],
         "aliases": [
           "StrictDoc",
           "sdoc"
         ],
-        "firstLine": "^\\[DOCUMENT\\]$",
+        "firstLine": "^\\[(DOCUMENT|FRAGMENT)\\]$",
         "configuration": "./language-configuration.json"
       }
     ],

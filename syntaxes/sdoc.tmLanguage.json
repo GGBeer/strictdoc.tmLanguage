@@ -1,9 +1,11 @@
 {
 	"comment": "StrictDoc Syntax: version 1.0",
 	"fileTypes": [
-		"sdoc"
+		"sdoc",
+		"sdinc",
+		"ssec"
 	],
-	"firstLineMatch": "^\\[DOCUMENT\\]$",
+	"firstLineMatch": "^\\[(DOCUMENT|FRAGMENT)\\]$",
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "StrictDoc",
 	"patterns": [
@@ -11,10 +13,19 @@
 			"include": "#document"
 		},
 		{
+			"include": "#fragment"
+		},
+		{
 			"include": "#grammar"
 		},
 		{
+			"include": "#bibliography"
+		},
+		{
 			"include": "#section"
+		},
+		{
+			"include": "#fragment_from_file"
 		},
 		{
 			"include": "#requirement"
@@ -37,7 +48,7 @@
 				},
 				"patterns": [{
 					"name": "keyword.control.sdoc",
-					"match": "\\b(UID|REFS|TITLE|STATEMENT|RATIONALE|COMMENT)\\b"
+					"match": "\\b(MID|UID|LEVEL|STATUS|TITLE|STATEMENT|RATIONALE|COMMENT|TAGS|REFS|RELATIONS)\\b"
 				}]
 			}]
 		},
@@ -75,16 +86,32 @@
 				]
 			}]
 		},
+		"grammar_field_relations_type": {
+			"patterns": [{
+				"name": "",
+				"begin": "(^\\s\\s\\-\\sTYPE:)\\s",
+				"end": "$",
+				"beginCaptures": {
+					"0": { "name": "keyword.sdoc" }
+				},
+				"patterns": [
+					{
+						"name": "constant.numeric.sdoc",
+						"match": "\\b(Parent|Child|File|BibTex)\\b"
+					}
+				]
+			}]
+		},
 		"grammar_field_reference_choice": {
 			"patterns": [{
 				"name": "constant.character.sdoc",
-				"match": "\\b(ParentReqReference|FileReference|BibReference)\\b"
+				"match": "\\b(ParentReqReference|ChildReqReference|FileReference|BibReference)\\b"
 			}]
 		},
 		"document_field_name": {
 			"patterns": [{
 				"name": "keyword.control.sdoc",
-				"match": "^\\b(TITLE|UID|VERSION|CLASSIFICATION)\\b:"
+				"match": "^\\b(TITLE|MID|UID|VERSION|CLASSIFICATION|REQ_PREFIX|ROOT)\\b:"
 			}]
 		},
 		"document_options": {
@@ -97,6 +124,9 @@
 				},
 				"patterns": [
 					{
+						"include": "#document_options_enable_mid"
+					},
+					{
 						"include": "#document_options_markup"
 					},
 					{
@@ -107,6 +137,21 @@
 					},
 					{
 						"include": "#document_options_requirement_in_toc"
+					}
+				]
+			}]
+		},
+		"document_options_enable_mid": {
+			"patterns": [{
+				"name": "constant.numeric.sdoc",
+				"begin": "(^\\s\\ENABLE_MID:)",
+				"end": "$",
+				"beginCaptures": {
+					"0": { "name": "keyword.control.sdoc" }
+				},
+				"patterns": [
+					{
+						"include": "#choice_boolean"
 					}
 				]
 			}]
@@ -179,6 +224,16 @@
 				]
 			}]
 		},
+    "fragment": {
+			"patterns": [{
+				"begin": "(?<!\\.)^\\[FRAGMENT\\]$",
+				"name": "keyword.sdoc",
+				"end": "^$",
+				"beginCaptures": {
+					"0": { "name": "keyword.sdoc" }
+				}
+			}]
+		},
 		"grammar": {
 			"patterns": [{
 				"begin": "^\\[\\b(GRAMMAR)\\b\\]$",
@@ -193,7 +248,7 @@
 						"name": "keyword.sdoc"
 					},
 					{
-						"match": "^(-|\\s)\\s(TAG|FIELDS):",
+						"match": "^(-|\\s)\\s(TAG|FIELDS|REFS|RELATIONS):",
 						"name": "keyword.sdoc"
 					},
 					{
@@ -204,6 +259,9 @@
 					},
 					{
 						"include": "#grammar_field_required"
+					},
+					{
+						"include": "#grammar_field_relations_type"
 					}
 				]
 			}]
@@ -212,7 +270,7 @@
 			"patterns": [
 				{
 					"name": "invalid.illegal.sdoc",
-					"match": "\\[\\/(REQUIREMENT|GRAMMAR|DOCUMENT)\\]"
+					"match": "\\[\\/(REQUIREMENT|GRAMMAR|BIBLIOGRAPHY|DOCUMENT|FRAGMENT|FRAGMENT_FROM_FILE)\\]"
 				},
 				{
 					"name": "keyword.sdoc",
@@ -226,7 +284,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.sdoc",
-					"match": "^(UID|TITLE):\\s"
+					"match": "^(MID|UID|TITLE|LEVEL|REQ_PREFIX):\\s"
 				}
 			],
 			"captures": {
@@ -237,18 +295,18 @@
 		},
 		"requirement_fields": {
 			"patterns": [{
-				"match": "^(UID|REFS|TITLE|STATEMENT|RATIONALE|COMMENT):\\s",
+				"match": "^(UID|MID|TITLE|STATEMENT|RATIONALE|COMMENT|TAGS|REFS|RELATIONS):\\s",
 				"name": "keyword.control.sdoc"
 			}]
 		},
 		"requirement_field_params": {
 			"patterns": [{
-				"match": "^(-\\sTYPE|\\s\\sVALUE):\\s",
+				"match": "^(-\\sTYPE|\\s\\sVALUE|\\s\\sFORMAT):\\s",
 				"name": "keyword.other.sdoc"
 			}]
 		},
 		"requirement": {
-			"begin": "^\\[REQUIREMENT\\]$",
+			"begin": "^\\[REQUIREMENT|COMPOSITE_REQUIREMENT\\]$",
 			"end": "^$",
 			"patterns": [
 				{
@@ -259,6 +317,50 @@
 				},
 				{
 					"include": "#requirement_field_params"
+				}
+			],
+			"captures": {
+				"0": {
+					"name": "keyword.sdoc"
+				}
+			}
+		},
+		"bibliography_fields": {
+			"patterns": [{
+				"match": "^(BIBFILES|ENTRIES):\\s",
+				"name": "keyword.control.sdoc"
+			},
+			{
+				"match": "^(-|\\s)\\s(FORMAT|VALUE):",
+				"name": "keyword.sdoc"
+			}]
+		},
+		"bibliography": {
+			"begin": "^\\[BIBLIOGRAPHY\\]$",
+			"end": "^$",
+			"patterns": [
+				{
+					"include": "#bibliography_fields"
+				}
+			],
+			"captures": {
+				"0": {
+					"name": "keyword.sdoc"
+				}
+			}
+		},
+		"fragment_from_file_fields": {
+			"patterns": [{
+				"match": "^(FILE):\\s",
+				"name": "keyword.control.sdoc"
+			}]
+		},
+		"fragment_from_file": {
+			"begin": "^\\[FRAGMENT_FROM_FILE\\]$",
+			"end": "^$",
+			"patterns": [
+				{
+					"include": "#fragment_from_file_fields"
 				}
 			],
 			"captures": {
